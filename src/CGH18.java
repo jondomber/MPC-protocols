@@ -39,7 +39,6 @@ public class CGH18 implements MPCProtocol {
         ss = new SecretSharing(n, F);
 
         sc = new SecureRandom();
-        // TODO we have moved the action of seeding up here -- maybe look more at how to seed!
         sc.nextBoolean();
     }
     private void calcNumberOfMultsAndOuts(Gate[] circuit) {
@@ -85,7 +84,6 @@ public class CGH18 implements MPCProtocol {
         BigInteger[] tShares = connections.receive(pid);
         pid++;
         BigInteger[] two_tShares = connections.receive(pid);
-        // TODO Find out how to the the doubleRandom matrix.
         // Randomness extraction matrix
         BigInteger[] M = new BigInteger[n];
         for (int i = 0; i<n; i++) {
@@ -125,7 +123,7 @@ public class CGH18 implements MPCProtocol {
         BigInteger[] random = new BigInteger[l];
         BigInteger[] double_random = new BigInteger[l];
 
-        connections.setNrElementsToSend(2*((int) Math.ceil((double)l / m)));
+        connections.setNrOfElementsToSend(2*((int) Math.ceil((double)l / m)));
         do {
             if (m < k) {
                 int finalId = id;
@@ -229,7 +227,7 @@ public class CGH18 implements MPCProtocol {
         int m = n - t;
         int k = l;
 
-        connections.setNrElementsToSend((int) Math.ceil((double)l / (n-t)));
+        connections.setNrOfElementsToSend((int) Math.ceil((double)l / (n-t)));
 
         BigInteger[] random = new BigInteger[l];
         do {
@@ -288,7 +286,6 @@ public class CGH18 implements MPCProtocol {
     private Lock evalLock = new ReentrantLock();
     private void evalInput1(Gate g, BigInteger r, int pid) {
         int label = g.getLabel();
-        // TODO
         evalLock.lock();
         if (label == partyNr) {
             // delta_i = x + r
@@ -312,7 +309,7 @@ public class CGH18 implements MPCProtocol {
         globalPid = (int) Math.ceil((double)numberOfMults / (n-t));
         BigInteger[] r = new BigInteger[numberOfInputs];
 
-        connections.setNrElementsToSend(numberOfInputs);
+        connections.setNrOfElementsToSend(numberOfInputs);
         Future[] futures = new Future[numberOfInputs];
         int pid = globalPid;
         for (int i=0; i<numberOfInputs; i++) {
@@ -358,7 +355,7 @@ public class CGH18 implements MPCProtocol {
 
         globalPid = pid;
         if (numberOfMyInputs > 0) {
-            connections.setNrElementsToSend(numberOfMyInputs);
+            connections.setNrOfElementsToSend(numberOfMyInputs);
         }
 
         pid = globalPid;
@@ -374,7 +371,7 @@ public class CGH18 implements MPCProtocol {
             });
             pid++;
         }
-        for (int i = 0; i<numberOfInputs; i++) { // TODO
+        for (int i = 0; i<numberOfInputs; i++) {
             try {
                 futures[i].get();
             } catch (InterruptedException | ExecutionException e) {
@@ -799,7 +796,6 @@ public class CGH18 implements MPCProtocol {
                 if (i == circuit.length)
                     break;
             }
-            //TODO maybe move this down
             if (countMultsThisLvl != 0)
                 connections.setNrElementsToSend_OPEN(2*countMultsThisLvl);
 
@@ -915,7 +911,6 @@ public class CGH18 implements MPCProtocol {
 
         return new long[]{sharesSend, messagesSend, durationProtocol};
     }
-    // TODO where is this
     /*– Inputs: The parties hold a sharing [v].
             – The protocol:
             1. The parties call F rand to obtain a sharing [r].

@@ -10,7 +10,7 @@ public class SecretSharing {
         this.F = F;
     }
 
-    //Secret sharing -- returns array of shares which can be reconstructed to the secret given degree+1 shares.
+    // Secret sharing -- returns array of shares which can be reconstructed to the secret given degree+1 shares.
     public BigInteger[] secretSharing(int degree, BigInteger secret) {
         // We want to generate polynomial of degree degree
 
@@ -32,7 +32,6 @@ public class SecretSharing {
 
 
         // Computing the polynomial at each of the n points
-        //TODO: This can be done more efficient
         BigInteger[] ss = new BigInteger[n];
         for (int j = 1; j <= n; j++) {
             BigInteger[] xs = new BigInteger[degree+1];

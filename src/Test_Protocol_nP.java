@@ -30,7 +30,6 @@ public class Test_Protocol_nP extends Thread {
         hostnames[2] = "localhost";
 
         // Constructing circuit
-        // TODO: Make a smarter way to make a circuit.
 
         Gate in1 = new Gate(Type.INPUT, 0);
         Gate in2 = new Gate(Type.INPUT, 1);

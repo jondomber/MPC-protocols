@@ -5,7 +5,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DamgaardNielsen_DK implements MPCProtocol {
-    // TODO virker den overhoved rigtigt?? Mange af de beskreder som bliver sendt er de samme. Måske fordi der ofte bliver ganget med 1,
     private int partyNr;
     private BigInteger F; // prime generating field F
     private BigInteger[] x; // inputs of party
@@ -39,7 +38,6 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         ss = new SecretSharing(n, F);
 
         sc = new SecureRandom();
-        // TODO we have moved the action of seeding up here -- maybe look more at how to seed!
         sc.nextBoolean();
     }
     private void calcNumberOfMults(Gate[] circuit) {
@@ -87,7 +85,6 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         BigInteger[] tShares = connections.receive(pid);
         pid++;
         BigInteger[] two_tShares = connections.receive(pid);
-        // TODO Find out how to the the doubleRandom matrix.
         // Randomness extraction matrix
         BigInteger[] M = new BigInteger[n];
         for (int i = 0; i<n; i++) {
@@ -127,7 +124,7 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         BigInteger[] random = new BigInteger[l];
         BigInteger[] double_random = new BigInteger[l];
 
-        connections.setNrElementsToSend(2*((int) Math.ceil((double)l / (n-t))));
+        connections.setNrOfElementsToSend(2*((int) Math.ceil((double)l / (n-t))));
 
         do {
             if (m < k) {
@@ -232,7 +229,7 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         int m = n - t;
         int k = l;
 
-        connections.setNrElementsToSend((int) Math.ceil((double)l / (n-t)));
+        connections.setNrOfElementsToSend((int) Math.ceil((double)l / (n-t)));
 
         BigInteger[] random = new BigInteger[l];
         do {
@@ -288,47 +285,6 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         return random;
     }
 
-/*  TODO remove
-    private BigInteger[] random_old(int l, int pid) {
-        int b = F.bitLength();
-        // Generate doubleRandom si
-        BigInteger si;
-        // Check if si was generated inside the field.
-        do {
-            si = new BigInteger(b, sc);
-        }
-        while (si.compareTo(F) > 0);
-        BigInteger[] tSharing = ss.secretSharing(t,si);
-
-        connections.sendShares(tSharing, pid);
-        BigInteger[] tShares = connections.receive(pid);
-
-        // Randomness extraction matrix
-        BigInteger[] M = new BigInteger[n];
-        for (int i = 0; i<n; i++) {
-            M[i] = BigInteger.ONE;
-        }
-
-        // Randomness
-        BigInteger[] r = new BigInteger[l];
-        for (int i = 0; i<l; i++) {
-            BigInteger[] alphas = new BigInteger[n];
-
-            // We create an array consisting of (α1^i, α2^i, ..., αn^i)
-            BigInteger i_bi = new BigInteger(Integer.toString(i));
-            for (int k = 0; k < n; k++) {
-                alphas[k] = M[k].modPow(i_bi, F);
-            }
-
-            r[i] = BigInteger.ZERO;
-            for (int j = 0; j<n; j++) {
-                // α1^i*r1 + ... + αn^i*rn
-                r[i] = (r[i].add(tShares[j].multiply(alphas[j]))).mod(F);
-            }
-        }
-        return r;
-    }
-*/
 
     // We do the open in three steps so it can be done using a fixed number of threads less than the number of elements
     // to be opened for much improved performance.
@@ -403,13 +359,12 @@ public class DamgaardNielsen_DK implements MPCProtocol {
     private  Triples[] multTriples;
 
 
-    // TODO maybe this should maybe be done in parallel??????
     private void preprocess(Gate[] circuit) {
         // Generate randomness for inputs
         input_randomness = random(numberOfInputs, globalPid);
         globalPid += (numberOfInputs/(n-t)+1);
 
-        connections.setNrElementsToSend(numberOfInputs);
+        connections.setNrOfElementsToSend(numberOfInputs);
         Future[] futures = new Future[numberOfInputs];
         int pid = globalPid;
         for (int i=0; i<numberOfInputs; i++) {
@@ -512,7 +467,7 @@ public class DamgaardNielsen_DK implements MPCProtocol {
         long t1 = System.currentTimeMillis();
         Future[] futures = new Future[numberOfInputs];
         if (numberOfMyinputs > 0)
-            connections.setNrElementsToSend(numberOfMyinputs);
+            connections.setNrOfElementsToSend(numberOfMyinputs);
         int pid = globalPid;
         for (int i = 0; i<numberOfInputs; i++) {
             int finalI = i;
@@ -524,13 +479,6 @@ public class DamgaardNielsen_DK implements MPCProtocol {
             });
             pid = pid + 4;
         }
-        /*for (int i = 0; i<numberOfInputs; i++) { // TODO this still works
-            try {
-                futures[i].get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }*/
 
         pid = globalPid;
         for (int i = 0; i<numberOfInputs; i++) {

@@ -26,7 +26,6 @@ class ImportCircuit {
             // Number of output gates
             int n_out = Integer.parseInt(line.substring(line.lastIndexOf(" ") + 1));
 
-            // TODO maybe we can handle the input gates in a different way
             // number of gates in the circuit is the input gates + 4 times the number of gates in the
             // circuit since each XOR gate results in 4 gates in this circuit!
             Gate[] circuit = new Gate[n1 + n2 + 4*numberOfGates + n_out];

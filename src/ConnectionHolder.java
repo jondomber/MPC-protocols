@@ -22,8 +22,7 @@ public class ConnectionHolder {
     private int elements_send_currently = 0;
     private String[] message;
 
-    //TODO set capasity
-    private ConcurrentHashMap<Integer, BigInteger[]> receivedFromPid = new ConcurrentHashMap<Integer, BigInteger[]>();
+    private ConcurrentHashMap<Integer, BigInteger[]> receivedFromPid = new ConcurrentHashMap<>();
 
     int bytesSend = 0;
     int nrOfSharesSend = 0;
@@ -71,7 +70,7 @@ public class ConnectionHolder {
         receivers = new Receiver[n];
         for (int i = 0; i<n; i++) {
             // System.out.println(partyNr + " Receiver " + i + " started");
-            receivers[i] = new Receiver(i, this);
+            receivers[i] = new Receiver(i);
             receivers[i].start();
         }
     }
@@ -96,30 +95,25 @@ public class ConnectionHolder {
         }
     }
 
+    // A class extending thread for running in parallel to look for received messages from its designated party.
     class Receiver extends Thread {
-        private final ConnectionHolder ch;
         private int connectionNr;
 
-        Receiver(int connectionNr, ConnectionHolder ch) {
+        Receiver(int connectionNr) {
             this.connectionNr = connectionNr;
-            this.ch = ch;
         }
 
         public void run() {
             while (receiveContinue) {
-                long t1 = System.currentTimeMillis();
                 String received = ((Connection) connections[connectionNr]).receive();
+
                 // If this is the case we are either done or there is an error!
-                if(received == null) {
+                if(received == null)
                     break;
-                }
+
                 if (received.startsWith("%")) {
                     message[connectionNr] = received.substring(1);
                 } else {
-                    long t2 = System.currentTimeMillis();
-                    // System.out.println("time waited " + (t2-t1));
-                    // Incoming msg with pid
-                    // System.out.println(partyNr + " Received " + received + " from " + i);
                     pid_and_BigInteger[] pidres_array = getPidAndRes(received);
                     for (pid_and_BigInteger pidres : pidres_array) {
                         int pid = pidres.pid;
@@ -132,7 +126,6 @@ public class ConnectionHolder {
                 }
 
                 synchronized (ConnectionHolder.this) {
-                    // notifyAll or just notify()
                     ConnectionHolder.this.notifyAll();
                 }
             }
@@ -185,7 +178,6 @@ public class ConnectionHolder {
             for (int i = 0; i<n; i++) {
                 ((Connection) connections[i]).send(res[i]);
                 String s = new String(res[i], StandardCharsets.UTF_8);
-                // System.out.println(partyNr + " -> " + i + " Sending share " + s + " to " + i + ", num " + number_of_elements_to_send);
                 messagesSend++;
                 bytesSend +=res[i].length;
             }
@@ -326,7 +318,6 @@ public class ConnectionHolder {
     }
 
 
-    // TODO: Break out of loop after certain amount of time to handle timeout of other parties (not essential)
     // Receive from all other parties
     public BigInteger[] receive() {
         long t1 = System.nanoTime();
@@ -335,7 +326,6 @@ public class ConnectionHolder {
         for (int i = 0; i<n; i++) {
             int c = 0;
             while(rec[i] == null) {
-                // TODO syncronized
                 synchronized (this) {
                     try {
                         synchronized (this) {
@@ -454,7 +444,6 @@ public class ConnectionHolder {
         }
     }
     private pid_and_BigInteger[] getPidAndRes(String received) {
-        // TODO maybe make array size better!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         pid_and_BigInteger[] pidres = new pid_and_BigInteger[received.length()];
 
         int i = 0;
@@ -473,7 +462,6 @@ public class ConnectionHolder {
         if(hashTagidx == -1) {
             if (received.equals("BOTTOM"))
                 return new pid_and_BigInteger[0];
-            System.out.println("");
         }
         String pid =  null;
 
@@ -509,7 +497,7 @@ public class ConnectionHolder {
     }
 
 
-    void setNrElementsToSend(int l) {
+    void setNrOfElementsToSend(int l) {
         sendLock.lock();
 
         number_of_elements_to_send = l;
@@ -552,7 +540,6 @@ public class ConnectionHolder {
     public void resetNrElementsToSend() {
         sendLock.lock();
 
-        // TODO why does element_send_currently_all need to be reset here???
         number_of_elements_to_send = 1;
         number_of_elements_to_send_all = 1;
 

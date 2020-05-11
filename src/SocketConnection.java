@@ -19,8 +19,8 @@ public class SocketConnection extends Thread implements Connection {
     Lock lock = new ReentrantLock();
 
     SocketConnection(int port, String hostname) {
-            this.port = port;
-            this.hostname = hostname;
+        this.port = port;
+        this.hostname = hostname;
         // String key = "MZygpewJsCpRrfOr";
     }
 

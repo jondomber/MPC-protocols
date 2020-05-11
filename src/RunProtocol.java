@@ -15,12 +15,12 @@ public class RunProtocol {
     public static void main(String[] args) {
         if(args.length == 0) {
             System.out.println("########################################## \nRunning the protocol takes three inputs: \n 1. This party's number " +
-                    "\n 2. The number of the protocol to runProtocol (0 for CEPS, 1 for Damgård-Nielsen, 3 for CGH18)" +
+                    "\n 2. The number of the protocol to run (0 for CEPS, 1 for Damgård-Nielsen, 3 for CGH18)" +
                     "\n 3. The path of the description of the circuit to be evaluated");
             return;
         }
         partyNr = Integer.parseInt(args[0]);
-        String prot = args[1];
+        String protocolString = args[1];
         ImportCircuit imp = new ImportCircuit();
 
         String circuitPath = args[2];
@@ -39,7 +39,7 @@ public class RunProtocol {
 
 
         MPCProtocol protocol;
-        switch (prot) {
+        switch (protocolString) {
             case "0":
                 protocol = new CEPS(partyNr, F, x, n, hostnames, ports);
                 break;
