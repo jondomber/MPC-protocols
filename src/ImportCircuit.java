@@ -164,6 +164,7 @@ class ImportCircuit {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("File Reading Error!");
         return new Gate[0];
     }
 

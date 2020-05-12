@@ -75,6 +75,7 @@ public class ConnectionHolder {
         }
     }
 
+    // Stop the connections
     public void stop() {
         receiveContinue = false;
         for (Thread t : connections)
@@ -141,15 +142,19 @@ public class ConnectionHolder {
     public void sendShares(BigInteger[] shares, int pid) {
         sendLock.lock();
         nrOfSharesSend += shares.length;
+
         if(sendShares_Array == null)
             sendShares_Array = new pid_and_BigInteger[number_of_elements_to_send][];
         pid_and_BigInteger[] pidres_shares = new pid_and_BigInteger[n];
+
+        // Add the shares to the array of shares to be send
         for (int i = 0; i<n; i++) {
             pidres_shares[i] = new pid_and_BigInteger(pid, shares[i]);
         }
         sendShares_Array[elements_send_currently] = pidres_shares;
         elements_send_currently++;
 
+        // all the shares that are to be send has been received.
         if(elements_send_currently == number_of_elements_to_send) {
             long t1 = System.currentTimeMillis();
             byte[][] res = new byte[n][];
@@ -177,7 +182,6 @@ public class ConnectionHolder {
             }
             for (int i = 0; i<n; i++) {
                 ((Connection) connections[i]).send(res[i]);
-                String s = new String(res[i], StandardCharsets.UTF_8);
                 messagesSend++;
                 bytesSend +=res[i].length;
             }
@@ -203,11 +207,7 @@ public class ConnectionHolder {
                 sendToPi_array.add(null);
             }
         }
-        /*try {
-            sendToPi_array.get(i);
-        } catch ( IndexOutOfBoundsException e ) {
-            sendToPi_array.add( i, new ArrayList<>(number_of_elements_to_send));
-        }*/
+
         if (sendToPi_array.get(i) == null) {
             sendToPi_array.set(i, new ArrayList<>(number_of_elements_to_send));
         }
@@ -215,7 +215,6 @@ public class ConnectionHolder {
         elements_send_currently_Pi++;
 
         if(elements_send_currently_Pi == number_of_elements_to_send) {
-            long t1 = System.currentTimeMillis();
             byte[][] res = new byte[n][];
             for (int k = 0; k < n; k++) {
                 res[k] =  new byte[40*number_of_elements_to_send];
@@ -246,15 +245,12 @@ public class ConnectionHolder {
                 if ( sendToPi_array.get(m) != null) {
                     String s = new String(res[m], StandardCharsets.UTF_8);
                     ((Connection) connections[m]).send(res[m]);
-                    // System.out.println(partyNr + " -> " + m + " Sending Pi " + s + " to " + m + ", num " + number_of_elements_to_send);
                     bytesSend += res[m].length;
                     messagesSend++;
                 }
             }
             elements_send_currently_Pi = 0;
             sendToPi_array = null;
-            long t2 = System.currentTimeMillis();
-            // System.out.println("Sending to Pi time " + (t2-t1));
         }
         sendLock.unlock();
     }
@@ -275,12 +271,8 @@ public class ConnectionHolder {
 
         elements_send_currently_all++;
 
-        // System.out.println(partyNr + " current " + elements_send_currently_all + " to send " + number_of_elements_to_send_all);
         if(elements_send_currently_all == number_of_elements_to_send_all) {
-            long t1 = System.currentTimeMillis();
-
             byte[] res = new byte[40*number_of_elements_to_send_all];
-            // pid_and_BigInteger[] shares_array = sendShares_Array[elements_to_send_all.length];
             int count = 0;
             for (int j = 0; j< elements_to_send_all.length; j++) {
                 pid_and_BigInteger pid_x = elements_to_send_all[j];
@@ -299,14 +291,12 @@ public class ConnectionHolder {
             for (int i = 0; i<n; i++) {
                 String s = new String(res, StandardCharsets.UTF_8);
                 ((Connection) connections[i]).send(res);
-                // System.out.println(partyNr + " -> " + i + " Sending _All_ " + s + " to " + i + ", num " + number_of_elements_to_send_all);
                 bytesSend += res.length;
                 messagesSend++;
             }
             elements_send_currently_all = 0;
             elements_to_send_all = null;
             long t2 = System.currentTimeMillis();
-            // System.out.println("Sending to all time " + (t2-t1));
         }
         sendLock.unlock();
     }
@@ -318,33 +308,7 @@ public class ConnectionHolder {
     }
 
 
-    // Receive from all other parties
-    public BigInteger[] receive() {
-        long t1 = System.nanoTime();
-
-        BigInteger[] rec = receivedFromPid.get(-1);
-        for (int i = 0; i<n; i++) {
-            int c = 0;
-            while(rec[i] == null) {
-                synchronized (this) {
-                    try {
-                        synchronized (this) {
-                            wait();
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        // BigInteger[] res = rec.clone();
-        receivedFromPid.put(-1, new BigInteger[n]);
-        long t2 = System.nanoTime();
-        time += (t2-t1)/1000000;
-        return rec;
-    }
     public BigInteger[] receive(int pid) {
-        long t1 = System.nanoTime();
 
         // We wait until the value of pid is put in the map -- which is done when an element is
         // received and thus we wait to check until notified from the receiver.
@@ -370,9 +334,6 @@ public class ConnectionHolder {
                 }
             }
         }
-        long t2 = System.nanoTime();
-        time = (t2-t1)/1000000;
-        // System.out.println("receive time " + time);
         return receivedFromPid.remove(pid);
     }
 
@@ -380,7 +341,6 @@ public class ConnectionHolder {
     public BigInteger receiveFromPi(int i, int pid) {
         long t1 = System.nanoTime();
         // wait until receviedFromPid has a field with pid.
-        // receivedFromPid.putIfAbsent(pid, new BigInteger[n]);
         while(receivedFromPid.get(pid) == null) {
             synchronized (this) {
                 try {
@@ -402,7 +362,6 @@ public class ConnectionHolder {
         BigInteger res = receivedFromPid.remove(pid)[i];
         long t2 = System.nanoTime();
         time = (t2-t1)/1000000;
-        // System.out.println("time receive from Pi " + time + " res " + res);
         return res;
     }
 
@@ -449,7 +408,6 @@ public class ConnectionHolder {
         int i = 0;
         while(received.contains("&")) {
             int hashTagidx = received.indexOf("#");
-            // if(hashTagidx == -1) System.out.println("received msg has no #");;
             String pid = received.substring(0, hashTagidx);
             String res = received.substring(hashTagidx + 1, received.indexOf("&"));
 
@@ -524,17 +482,6 @@ public class ConnectionHolder {
             return (ln_floor + 1)*2;
         }
         return ln_floor*2;
-
-/*
-        int ln_floor = Math.floorDiv(l, n);
-        int residue = l - ln_floor*n;
-        if(residue == 0)
-            return ln_floor;
-        if (partyNr <= residue)
-            return (ln_floor + 1);
-
-        return ln_floor-1;
-*/
     }
 
     public void resetNrElementsToSend() {

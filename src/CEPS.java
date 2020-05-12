@@ -1,7 +1,5 @@
 import java.math.BigInteger;
 
-import static java.lang.Thread.sleep;
-
 public class CEPS implements MPCProtocol {
     private int partyNr; // The party number of this instantiation
     private BigInteger F; // prime generating field F
@@ -13,7 +11,7 @@ public class CEPS implements MPCProtocol {
     private int globalPid = 0; // Counter to keep track of where we are in the circuit to stop concurrency problems.
 
     // Constructor
-    CEPS(int partyNr, BigInteger F, BigInteger[] x, int n, String[] hostnames, int[] ports) {
+    public CEPS(int partyNr, BigInteger F, BigInteger[] x, int n, String[] hostnames, int[] ports) {
         this.partyNr = partyNr;
         this.F = F;
         this.x = x;
@@ -93,7 +91,7 @@ public class CEPS implements MPCProtocol {
             int numberOfOutputGatesInLayer = 0;// Counter to keep track of the number of --output-- gates
             int j = i;
 
-            // Iterate over the gates of the current level og the circuit
+            // Iterate over the gates of the current level of the circuit to get the number of multiplication and output gates
             while (circuit[i].getLevel() == currentLvl) {
                 if (circuit[i].getType() == Type.MULT)
                     numberOfMultiplicationGatesInLayer++;
@@ -104,8 +102,8 @@ public class CEPS implements MPCProtocol {
                     break;
             }
 
-            // Computes the add and multiply by constant gates and adds multiply and output gates to a list
-            // which is then evaluated in parallel later.
+            // Computes the add and 'multiply by constant' gates and adds multiply and output gates to a list
+            // which are then evaluated in parallel later.
             Gate[] multiplicationGates = new Gate[numberOfMultiplicationGatesInLayer];
             Gate[] outputGates = new Gate[numberOfOutputGatesInLayer];
             int multiplicationCounter = 0;

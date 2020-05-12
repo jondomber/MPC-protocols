@@ -13,22 +13,23 @@ public class RunProtocol {
 
 
     public static void main(String[] args) {
+        /*
         if(args.length == 0) {
             System.out.println("########################################## \nRunning the protocol takes three inputs: \n 1. This party's number " +
                     "\n 2. The number of the protocol to run (0 for CEPS, 1 for Damgård-Nielsen, 3 for CGH18)" +
                     "\n 3. The path of the description of the circuit to be evaluated");
             return;
         }
+        */
         partyNr = Integer.parseInt(args[0]);
         String protocolString = args[1];
+
         ImportCircuit imp = new ImportCircuit();
 
-        String circuitPath = args[2];
+        String circuitPath = "Test_Circuits\\adder_32bit.txt";
 
-        if (args[1].equals("-1")) {
-            circuit = imp.importCircuit(circuitPath);
-        }
-
+        circuit = imp.importCircuit(circuitPath);
+        System.out.println(circuit.length);
 
         numberOfInputs = getNumberOfInputs();
         BigInteger[] x = getInputs();
@@ -72,7 +73,7 @@ public class RunProtocol {
         // Only P0 and P1 provides input
         if(partyNr == 0 || partyNr == 1) {
             BigInteger[] in = new BigInteger[numberOfInputs];
-            try (BufferedReader br = new BufferedReader(new FileReader("Inputs/inputs" + partyNr + ".txt"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("Inputs\\inputs" + partyNr + ".txt"))) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < numberOfInputs; i++) {
                     in[i] = new BigInteger(br.readLine());
